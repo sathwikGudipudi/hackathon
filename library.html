@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <title>Library Catalog</title>
+    <style>
+        .navbar {
+            background-color: #b6d5f7; /* Blue color for navbar */
+        }
+
+        .card-body {
+            height: 300px; /* Set a fixed height for the card body */
+            background-color: #cdd4db; 
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg bg-body-tertiary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">Library</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
+                aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" id="addBookLink">Add Book</a>
+                    </li>
+                </ul>
+                <form class="d-flex" role="search">
+                    <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search"
+                        id="searchInput" onkeyup="searchBooks()">
+                    <button class="btn btn-outline-success" type="button" onclick="searchBooks()">Search</button>
+                </form>
+            </div>
+        </div>
+    </nav>
+    <div class="container mt-4">
+        <div class="row" id="catalog">
+            
+        </div>
+    </div>
+
+    <div id="addBookForm" style="display: none;" class="container mt-4">
+        <form>
+            <div class="form-group">
+                <label for="bookTitle">Title</label>
+                <input type="text" class="form-control" id="bookTitle" placeholder="Enter book title">
+            </div>
+            <div class="form-group">
+                <label for="bookAuthor">Author</label>
+                <input type="text" class="form-control" id="bookAuthor" placeholder="Enter author name">
+            </div>
+            <div class="form-group">
+                <label for="bookGenre">Genre</label>
+                <input type="text" class="form-control" id="bookGenre" placeholder="Enter genre">
+            </div>
+            <div class="form-group">
+                <label for="bookISBN">ISBN</label>
+                <input type="text" class="form-control" id="bookISBN" placeholder="Enter ISBN">
+            </div>
+            <div class="form-group">
+                <label for="bookReferenceType">Reference Type</label>
+                <input type="text" class="form-control" id="bookReferenceType" placeholder="Enter reference type">
+            </div>
+            <button type="submit" class="btn btn-primary">Add Book</button>
+        </form>
+    </div>
+    <script>
+        class Book {
+    constructor(title, author, genre, ISBN) {
+        this._title = title;
+        this._author = author;
+        this._genre = genre;
+        this._ISBN = ISBN;
+        this._availability = true;
+    }
+
+    get title() {
+        return this._title;
+    }
+
+    set title(newTitle) {
+        this._title = newTitle;
+    }
+
+    get author() {
+        return this._author;
+    }
+
+    set author(newAuthor) {
+        this._author = newAuthor;
+    }
+
+    get genre() {
+        return this._genre;
+    }
+
+    set genre(newGenre) {
+        this._genre = newGenre;
+    }
+
+    get ISBN() {
+        return this._ISBN;
+    }
+
+    set ISBN(newISBN) {
+        this._ISBN = newISBN;
+    }
+
+    get availability() {
+        return this._availability;
+    }
+
+    checkout() {
+        if (this._availability) {
+            this._availability = false;
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    returnBook() {
+        if (!this._availability) {
+            this._availability = true;
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    displayDetails() {
+        return `Title: ${this._title}, Author: ${this._author}, Genre: ${this._genre}, ISBN: ${this._ISBN}, Availability: ${this._availability ? 'Available' : 'Not Available'}`;
+    }
+}
+
+
+        class ReferenceBook extends Book {
+            constructor(title, author, genre, ISBN, referenceType) {
+                super(title, author, genre, ISBN);
+                this.referenceType = referenceType;
+            }
+
+            showReferenceType() {
+                return `Reference Type: ${this.referenceType}`;
+            }
+        }
+
+        const books = [];
+
+        function addBookToCatalog() {
+            const title = document.getElementById('bookTitle').value;
+            const author = document.getElementById('bookAuthor').value;
+            const genre = document.getElementById('bookGenre').value;
+            const ISBN = document.getElementById('bookISBN').value;
+            const referenceType = document.getElementById('bookReferenceType').value;
+
+            const newBook = new ReferenceBook(title, author, genre, ISBN, referenceType);
+            books.push(newBook);
+
+            updateCatalog();
+            saveBooksToLocalStorage();
+        }
+
+        loadBooksFromLocalStorage();
+
+        function saveBooksToLocalStorage() {
+            localStorage.setItem('books', JSON.stringify(books));
+        }
+
+        function loadBooksFromLocalStorage() {
+            const storedBooks = localStorage.getItem('books');
+            if (storedBooks) {
+                books.push(...JSON.parse(storedBooks));
+                updateCatalog();
+            }
+        }
+
+        function updateCatalog(filteredBooks = books) {
+            const catalog = document.getElementById('catalog');
+            catalog.innerHTML = '';
+
+            filteredBooks.forEach((book, index) => {
+                const col = document.createElement('div');
+                col.classList.add('col-md-4', 'mb-4');
+                col.innerHTML = `
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">${book.title}</h5>
+                    <p class="card-text">Author: ${book.author}</p>
+                    <p class="card-text">Genre: ${book.genre}</p>
+                    <p class="card-text">ISBN: ${book.ISBN}</p>
+                    <p class="card-text">Availability: ${book.availability ? 'Available' : 'Not Available'}</p>
+                    ${book instanceof ReferenceBook && book.referenceType ? `<p class="card-text">Reference Type: ${book.referenceType}</p>` : ''}
+                    ${book.availability ? `<button onclick="checkoutBook(${index})" class="btn btn-primary">Checkout</button>` : ''}
+                    ${!book.availability ? `<button onclick="returnBook(${index})" class="btn btn-success">Return</button>` : ''}
+                    <button onclick="removeBook(${index})" class="btn btn-danger">Remove</button>
+                </div>
+            </div>
+        `;
+                catalog.appendChild(col);
+            });
+        }
+
+
+        function checkoutBook(index) {
+            if (books[index].checkout()) {
+                updateCatalog();
+                saveBooksToLocalStorage();
+                alert('Book checked out successfully!');
+            } else {
+                alert('This book is already checked out.');
+            }
+        }
+
+        function returnBook(index) {
+            if (books[index].returnBook()) {
+                updateCatalog();
+                saveBooksToLocalStorage();
+                alert('Book returned successfully!');
+            } else {
+                alert('This book is already available.');
+            }
+        }
+
+        function removeBook(index) {
+            books.splice(index, 1);
+            updateCatalog();
+            saveBooksToLocalStorage();
+            alert('Book removed successfully!');
+        }
+
+        function searchBooks() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const filteredBooks = books.filter(book =>
+                book.title.toLowerCase().includes(searchTerm) ||
+                book.author.toLowerCase().includes(searchTerm) ||
+                book.genre.toLowerCase().includes(searchTerm)
+            );
+            updateCatalog(filteredBooks);
+        }
+
+        document.getElementById("addBookLink").addEventListener("click", function (event) {
+            event.preventDefault();
+            document.getElementById("addBookForm").style.display = "block";
+        });
+
+        document.querySelector("#addBookForm form").addEventListener("submit", function (event) {
+            event.preventDefault();
+            addBookToCatalog();
+            document.getElementById("addBookForm").style.display = "none";
+            this.reset();
+        });
+    </script>
+</body>
+
+</html>
